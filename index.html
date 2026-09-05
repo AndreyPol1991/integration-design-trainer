@@ -1065,6 +1065,25 @@
   .simlog .bad2{color:var(--danger)}
   .simlog .dim{color:var(--faint)}
   .bigno{font:800 30px/1.2 var(--mono); text-align:center; margin:8px 0 2px}
+
+  /* жёсткий практикум */
+  .hard-in{width:100%; font:600 13.3px var(--mono); background:var(--surface-2); border:1.5px solid var(--line);
+           border-radius:9px; padding:10px 13px; color:var(--ink); box-sizing:border-box}
+  .hard-in:focus{outline:none; border-color:var(--kv); background:var(--surface)}
+  textarea.hard-in{font:400 13.6px/1.65 var(--sans); resize:vertical}
+  .hard-row{margin-bottom:15px}
+  .hard-row label{display:block; font-size:13.5px; color:var(--muted); margin-bottom:7px; line-height:1.5}
+  .hard-row label b{color:var(--ink)}
+  .rem{font-size:13px; line-height:1.6; margin-top:7px; color:var(--warn)}
+  .rem.ok2{color:var(--ok)}
+  .codegrid{display:grid; grid-template-columns:1fr 92px; gap:9px 14px; align-items:center; margin-bottom:12px}
+  .codegrid .cs{font-size:13.5px; color:var(--muted); line-height:1.5}
+  .codegrid input{text-align:center; font:700 14px var(--mono)}
+  .codegrid input.good{border-color:var(--ok); color:var(--ok)}
+  .codegrid input.bad{border-color:var(--danger); color:var(--danger)}
+  @media (max-width:560px){ .codegrid{grid-template-columns:1fr 74px} }
+  .qlimit{font:700 13px var(--mono); color:var(--kv)}
+  #hd-doc{max-height:520px; overflow:auto}
 </style>
 </head>
 
@@ -1088,6 +1107,7 @@
       <button class="tab" role="tab" aria-selected="false" data-tab="say" style="--tabcol:var(--kv)"><span class="dot"></span>10 · Скажи словами 🗣</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="practice" style="--tabcol:var(--kfk)"><span class="dot"></span>11 · Практика 🎯</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="capstone" style="--tabcol:var(--kfk)"><span class="dot"></span>12 · Капстоун 🏗</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="hard" style="--tabcol:var(--kv)"><span class="dot"></span>13 · Практикум 🔒</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="gloss" style="--tabcol:var(--br)"><span class="dot"></span>Глоссарий</button>
     </nav>
     <div class="pbar-wrap"><div class="pbar"><div class="pfill" id="pg-fill"></div></div><span class="plab">Прогресс: <b id="pg-lab">0%</b> · <span id="pg-pts">0 / 0</span></span></div>
@@ -1800,6 +1820,194 @@ Idempotency-Key: a7f5c821-2345-45ab-91dd-123456789abc
   </div>
 </section>
 
+<!-- ==================== 13. ПРАКТИКУМ (ЖЁСТКИЙ РЕЖИМ) ==================== -->
+<section class="panel" id="hard" data-accent="kv" role="tabpanel">
+  <p class="lead">Здесь нет вариантов ответа. Есть <b>кривая постановка от заказчика</b>, три таблицы и пустые поля. Всё, что ты напишешь, соберётся в документ — с ним ты придёшь к преподавателю. На часть вопросов тренажёр не ответит принципиально: это и есть то, что нужно обсудить с живым человеком.</p>
+
+  <div class="card" style="border-left:3px solid var(--kv)">
+    <h2><span class="tag">ПРАВИЛА</span> как устроен этот раздел</h2>
+    <div class="grid3">
+      <div class="lane"><h4>Сначала пишешь — потом смотришь</h4><p class="ls">Эталон по технике (адреса, JSON, коды) открывается <b>только после</b> того, как ты вписал своё решение и нажал «Проверить». Пустое поле эталон не открывает.</p></div>
+      <div class="lane"><h4>Вопросов всего шесть</h4><p class="ls">На встрече с заказчиком у тебя не бесконечное время. Из двенадцати тем можно задать <b>шесть</b>. Что не спросил — то не узнал, и проектировать придётся с дырой.</p></div>
+      <div class="lane"><h4>Часть ответов только у преподавателя</h4><p class="ls">Спорные решения и вопросы к бизнесу тренажёр не решает за тебя. Он запишет твою позицию в документ — защищать её будешь голосом.</p></div>
+    </div>
+    <div class="note"><b>Всё сохраняется.</b> Тексты остаются в этом браузере: можно закрыть вкладку и вернуться. В конце — кнопка, которая собирает всё в один документ.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ПИСЬМО</span> постановка, которую тебе прислали</h2>
+    <pre class="json">От: Марина, руководитель проекта
+Тема: интеграция с курьерской службой — надо срочно
+
+Привет!
+Мы курьерская служба «Быстро». К нам подключаются интернет-магазины.
+Надо, чтобы магазин мог создавать у нас доставки и видеть, что с ними
+происходит. Ещё пусть видит курьера. Отменять тоже надо, наверное.
+Сроки — вчера, разработчик ждёт постановку.
+Сделай красиво, ты же аналитик.</pre>
+    <div class="note bad"><b>Это нормальная постановка.</b> Именно так они и выглядят. В ней не сказано <b>ничего</b> про объёмы, надёжность, права, повторы, персональные данные и про то, кто кого вызывает. Твоя первая работа — не рисовать URL, а понять, чего не хватает.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ДАНО</span> три таблицы курьерской службы</h2>
+    <div class="grid3">
+      <div class="lane" style="border-color:var(--kv)">
+        <h4 style="color:var(--kv)">DELIVERY_ORDER</h4>
+        <div class="table-wrap"><table class="db"><tbody>
+          <tr><td><b>id</b></td><td>число, PK</td></tr>
+          <tr><td>external_order_id</td><td>строка</td></tr>
+          <tr><td>shop_id</td><td>число, FK</td></tr>
+          <tr><td>address</td><td>строка</td></tr>
+          <tr><td>recipient_name</td><td>строка</td></tr>
+          <tr><td>recipient_phone</td><td>строка</td></tr>
+          <tr><td>price</td><td>число</td></tr>
+          <tr><td>status</td><td>строка</td></tr>
+          <tr><td>courier_id</td><td>число, FK, NULL</td></tr>
+          <tr><td>created_at</td><td>дата и время</td></tr>
+        </tbody></table></div>
+      </div>
+      <div class="lane" style="border-color:var(--br)">
+        <h4 style="color:var(--br)">COURIER</h4>
+        <div class="table-wrap"><table class="db"><tbody>
+          <tr><td><b>id</b></td><td>число, PK</td></tr>
+          <tr><td>name</td><td>строка</td></tr>
+          <tr><td>phone</td><td>строка</td></tr>
+          <tr><td>transport</td><td>строка</td></tr>
+          <tr><td>status</td><td>строка</td></tr>
+        </tbody></table></div>
+        <p class="ls">Статусы курьера: свободен, на маршруте, не на смене.</p>
+      </div>
+      <div class="lane" style="border-color:var(--rmq)">
+        <h4 style="color:var(--rmq)">STATUS_HISTORY</h4>
+        <div class="table-wrap"><table class="db"><tbody>
+          <tr><td><b>id</b></td><td>число, PK</td></tr>
+          <tr><td>delivery_order_id</td><td>число, FK</td></tr>
+          <tr><td>status</td><td>строка</td></tr>
+          <tr><td>changed_at</td><td>дата и время</td></tr>
+        </tbody></table></div>
+        <p class="ls">Статусы доставки: создана, назначен курьер, забрал, в пути, доставлена, отменена, не доставлена.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ШАГ 1</span> вопросы заказчику — <span id="hd-q-score">0</span> из 6 баллов</h2>
+    <p>Сначала напиши <b>своими словами</b> вопросы, которые задашь Марине. Не меньше пяти. Потом получишь право открыть шесть тем — и увидишь, что она ответила.</p>
+    <div class="hard-row">
+      <label><b>Твои вопросы к постановке</b> — по одному на строку</label>
+      <textarea class="hard-in" id="hd-questions" rows="7" placeholder="1. Сколько магазинов подключится и сколько доставок в сутки ожидается?&#10;2. ..."></textarea>
+      <div class="rem" id="hd-q-rem"></div>
+    </div>
+    <div class="form-row"><button class="act" id="hd-q-send">Я задал эти вопросы →</button></div>
+
+    <div id="hd-topics-box" hidden>
+      <h3>Выбери шесть тем, которые ты действительно поднял — <span class="qlimit" id="hd-q-left">осталось 6</span></h3>
+      <p>Клик открывает ответ Марины. Отменить выбор нельзя — как и на настоящей встрече.</p>
+      <div class="bld" id="hd-topics"></div>
+      <div id="hd-answers"></div>
+      <div class="console" id="hd-q-msg">Выбирай осознанно: половина тем в этом списке — вода, и на них ты потратишь время впустую.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ШАГ 2</span> спроектируй эндпоинты — <span id="hd-e-score">0</span> из 4 баллов</h2>
+    <p>Четыре операции. Пиши так, как положил бы в постановку разработчику: <b>метод и путь</b>, с параметрами. Идентификатор обозначай как <code class="inl">{id}</code>.</p>
+    <div class="hard-row"><label><b>1.</b> Магазин создаёт доставку</label><input class="hard-in" id="hd-e1" placeholder="METHOD /путь"></div>
+    <div class="hard-row"><label><b>2.</b> Магазин узнаёт, что происходит с конкретной доставкой</label><input class="hard-in" id="hd-e2" placeholder="METHOD /путь"></div>
+    <div class="hard-row"><label><b>3.</b> Магазин получает свои доставки за 12 августа со статусом «в пути»</label><input class="hard-in" id="hd-e3" placeholder="METHOD /путь?параметры"></div>
+    <div class="hard-row"><label><b>4.</b> Магазин отменяет доставку, которую курьер ещё не забрал</label><input class="hard-in" id="hd-e4" placeholder="METHOD /путь"></div>
+    <div class="form-row"><button class="act" id="hd-e-check">Проверить</button><button class="ghost" id="hd-e-show" disabled>🔒 Эталон — после проверки</button></div>
+    <div id="hd-e-rem"></div>
+    <div id="hd-e-ref" hidden>
+      <h3>Как это выглядит у зрелого API</h3>
+      <pre class="json">1. POST   /api/v1/deliveries
+2. GET    /api/v1/deliveries/{id}
+3. GET    /api/v1/deliveries?date=2026-08-12&amp;status=in_transit
+4. POST   /api/v1/deliveries/{id}/cancel      (или PATCH /api/v1/deliveries/{id})</pre>
+      <div class="why-box">
+        <div class="wl">Почему отмена — отдельная штука</div>
+        <div class="wt"><code class="inl">DELETE</code> здесь спорен: доставка не исчезает, она переходит в статус «отменена» и остаётся в истории и в биллинге. Подходят два варианта: <code class="inl">PATCH</code> со статусом (честный REST) или <code class="inl">POST /{id}/cancel</code> (действие над ресурсом, когда за отменой стоит целый процесс — отзыв курьера, перерасчёт). Оба защитимы, и на ревью у тебя спросят <b>почему</b>, а не <b>что</b>.</div>
+      </div>
+      <div class="note warn"><b>Обрати внимание на третий пункт.</b> Если ты не спросил про объёмы — у тебя, скорее всего, нет пагинации. При 300 магазинах и 50 000 доставках в сутки такой эндпоинт ляжет в первый же день.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ШАГ 3</span> напиши тело ответа — <span id="hd-j-score">0</span> из 3 баллов</h2>
+    <p>Магазин запросил статус доставки (операция 2). Напиши <b>настоящий JSON</b>, который вернёт сервер. Тренажёр разберёт его как парсер: синтаксис проверится по-честному.</p>
+    <div class="hard-row">
+      <textarea class="hard-in" id="hd-json" rows="12" placeholder="{&#10;  &#10;}"></textarea>
+    </div>
+    <div class="form-row"><button class="act" id="hd-j-check">Проверить</button><button class="ghost" id="hd-j-show" disabled>🔒 Эталон — после проверки</button></div>
+    <div id="hd-j-rem"></div>
+    <div id="hd-j-ref" hidden>
+      <h3>Один из правильных вариантов</h3>
+      <pre class="json">{
+  "id": 8842,
+  "external_order_id": "SHOP-2026-000123",
+  "status": "in_transit",
+  "status_changed_at": "2026-08-12T14:05:00Z",
+  "created_at": "2026-08-12T09:31:00Z",
+  "price": 390,
+  "courier": {
+    "name": "Игорь",
+    "transport": "велосипед"
+  }
+}</pre>
+      <div class="why-box">
+        <div class="wl">Что тут важнее всего</div>
+        <div class="wt"><b>external_order_id</b> — без него магазин не сопоставит нашу доставку со своим заказом. <b>Статус на латинице</b>, а не «в пути»: значение обрабатывает программа, а переводить его — работа интерфейса. <b>Даты в ISO-8601 с зоной</b>. И <b>телефона курьера здесь нет</b>: магазину он не нужен, а это персональные данные живого человека. Отдавать лишнее — не щедрость, а риск.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ШАГ 4</span> коды ответов — <span id="hd-c-score">0</span> из 4 баллов</h2>
+    <p>Впиши код, который вернёт правильно спроектированный сервис. Только число.</p>
+    <div class="codegrid" id="hd-codes"></div>
+    <div class="form-row"><button class="act" id="hd-c-check">Проверить</button><button class="ghost" id="hd-c-show" disabled>🔒 Разбор — после проверки</button></div>
+    <div id="hd-c-rem"></div>
+    <div id="hd-c-ref"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ШАГ 5</span> защита от повторов — <span id="hd-i-score">0</span> из 2 баллов</h2>
+    <p>У магазина рвётся связь, запросы будут повторяться. Опиши <b>своими словами</b>, как ты не допустишь двойных доставок. Пиши как в постановку: чтобы разработчик сделал по тексту и ничего не додумывал.</p>
+    <div class="hard-row">
+      <textarea class="hard-in" id="hd-idem" rows="8" placeholder="Механизм: …&#10;Кто и когда генерирует ключ: …&#10;Что делает сервер при повторе: …&#10;Сколько хранится: …&#10;Что при том же ключе с другим телом: …"></textarea>
+    </div>
+    <div class="form-row"><button class="act" id="hd-i-check">Проверить себя</button><button class="ghost" id="hd-i-show" disabled>🔒 Чек-лист — после проверки</button></div>
+    <div id="hd-i-rem"></div>
+    <div id="hd-i-ref" hidden>
+      <h3>Что обязано быть в твоём тексте</h3>
+      <div class="chk" id="hd-i-chk"></div>
+      <div class="note warn"><b>Отметь честно.</b> Это самопроверка: за неё баллы не начисляются, но именно по этим пунктам преподаватель будет задавать вопросы. Каждый неотмеченный пункт — дыра, через которую в прод уедет двойная доставка.</div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--rmq)">
+    <h2><span class="tag">ШАГ 6</span> спорные решения — ответов здесь не будет</h2>
+    <p>Четыре вопроса, на которые нет единственно верного ответа. Напиши свою позицию <b>и аргумент</b>. Тренажёр их не оценивает — он сложит их в документ, и защищать ты будешь голосом.</p>
+    <div class="hard-row"><label><b>1.</b> Кто владеет статусной моделью доставки — мы или магазин? Что будет, если магазин захочет свои статусы?</label><textarea class="hard-in" id="hd-d1" rows="3"></textarea></div>
+    <div class="hard-row"><label><b>2.</b> Магазин узнаёт о смене статуса: мы шлём ему webhook или он опрашивает нас? Обоснуй выбор именно для этой задачи.</label><textarea class="hard-in" id="hd-d2" rows="3"></textarea></div>
+    <div class="hard-row"><label><b>3.</b> Телефон получателя — храним ли мы его у себя, отдаём ли обратно магазину, что пишем в логи?</label><textarea class="hard-in" id="hd-d3" rows="3"></textarea></div>
+    <div class="hard-row"><label><b>4.</b> Наша система недоступна 20 минут. Что в это время делает магазин и что мы обязаны ему пообещать в контракте?</label><textarea class="hard-in" id="hd-d4" rows="3"></textarea></div>
+    <div class="note"><b>Подсказка по формату ответа:</b> «Я предлагаю ..., потому что ...; риск в том, что ...; проверить это нужно у ...». Позиция без аргумента и без риска — не позиция.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag">ИТОГ</span> документ к разбору с преподавателем — <span id="hd-total">0</span> из 20 баллов</h2>
+    <p>Кнопка соберёт всё, что ты написал, и отдельно перечислит вопросы, которые ты <b>не</b> задал. С этим документом приходи на разбор.</p>
+    <div class="form-row">
+      <button class="act" id="hd-build">Собрать документ</button>
+      <button class="ghost" id="hd-copy">📋 Скопировать</button>
+      <button class="ghost" id="hd-clear">🗑 Очистить всё</button>
+    </div>
+    <div class="cap-doc" id="hd-doc" hidden></div>
+    <div class="console" id="hd-msg">Пройди шаги выше — потом собирай документ.</div>
+  </div>
+</section>
+
 <!-- ==================== 9. ПОРЯДОК РАБОТЫ ==================== -->
 <section class="panel" id="how" data-accent="br" role="tabpanel">
   <p class="lead">Ты прошёл три кейса. Теперь соберём из них <b>метод</b> — последовательность, которая работает на любой задаче: и на записи к врачу, и на выгрузке остатков, и на интеграции с платёжным шлюзом.</p>
@@ -1983,7 +2191,7 @@ var Progress = (function(){
   const LABELS = {'br1-score':'Задача','res-score':'Ресурсы','par-score':'Параметры','usr-score':'Кейс USER',
     'apt-score':'Конструктор APPOINTMENT','apt2-score':'APPOINTMENT: вопросы','cod-score':'Коды ответов',
     'jsn-hunt':'Ошибки в JSON','jsn-score':'JSON: вопросы','idm-score':'Идемпотентность','say':'Скажи словами',
-    'quiz':'Практика','cap':'Капстоун'};
+    'quiz':'Практика','cap':'Капстоун','hard':'Практикум'};
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(data)); }catch(e){} }
   function draw(){
     const keys = Object.keys(reg);
@@ -2602,6 +2810,373 @@ renderTasks('jsn-quiz', [
    why:'В стандарте JSON комментариев нет, и строгий парсер на них упадёт. Место для пояснений — <b>описание контракта</b>: OpenAPI или JSON Schema, где у каждого поля есть тип, обязательность и текстовое описание. Третий вариант, кстати, работает, но это уже данные, а не комментарий.'},
 ], 'jsn-score', 'jsn-qtotal');
 
+/* ================= 13. ПРАКТИКУМ: ЖЁСТКИЙ РЕЖИМ ================= */
+(function(){
+  const box = document.getElementById('hd-questions'); if(!box) return;
+  const KEY = 'apidesign-hard-v1';
+  let S = {q:'', topics:[], e:['','','',''], json:'', codes:['','','','','','','',''], idem:'', d:['','','','']};
+  try{ S = Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); }catch(e){}
+  const SC = {q:0, e:0, j:0, c:0, i:0};
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+  function total(){
+    const t = SC.q + SC.e + SC.j + SC.c + SC.i;
+    document.getElementById('hd-total').textContent = t;
+    Progress.report('hard', t);
+    return t;
+  }
+
+  /* ---------- ШАГ 1: вопросы ---------- */
+  const TOPICS = [
+    {k:'vol', t:'Объёмы и рост', crit:true,
+     a:'«Сейчас подключено 12 магазинов, к концу года планируем 300. В пик — до <b>50 000 доставок в сутки</b>, причём 90% приходится на промежуток с 18 до 22 часов».'},
+    {k:'dup', t:'Повторные запросы и дубли', crit:true,
+     a:'«Связь у магазинов рвётся регулярно, особенно в регионах. Разработчик одного из них честно сказал: у нас стоит <b>автоматический повтор три раза</b>, если не пришёл ответ за 5 секунд».'},
+    {k:'pd', t:'Персональные данные получателя', crit:true,
+     a:'«Имя и телефон получателя — персональные данные. Юристы требуют: не хранить дольше <b>90 дней</b> после доставки, не выводить в логи и не отдавать никому, кроме курьера на маршруте».'},
+    {k:'push', t:'Кто кого вызывает при смене статуса', crit:true,
+     a:'«Магазины хотят узнавать о смене статуса сразу, а не опрашивать нас. Два крупных готовы принимать наши вызовы к себе, остальные — нет, у них нет внешнего адреса. Значит, нужны <b>оба способа</b>».'},
+    {k:'down', t:'Что делать при недоступности систем', crit:true,
+     a:'«Если лежим мы — магазин всё равно должен оформить заказ у себя, <b>терять заказы нельзя</b>. Если лежит магазин — мы просто продолжаем возить, статусы дошлём потом».'},
+    {k:'cancel', t:'Отмена: до какого момента и что с деньгами', crit:true,
+     a:'«Отменить можно, пока курьер не забрал заказ, — тогда бесплатно. После — только через оператора и <b>с оплатой выезда</b>. Отменённые доставки из системы не удаляем: они нужны в биллинге и в отчётности».'},
+    {k:'fmt', t:'JSON или XML', crit:false,
+     a:'«JSON, конечно. У всех JSON. Жалко было тратить на это вопрос?»'},
+    {k:'db', t:'Какую СУБД возьмём', crit:false,
+     a:'«PostgreSQL. Но это решение разработчика, а не твоё, — и на контракт оно никак не влияет».'},
+    {k:'color', t:'Как показывать статусы в интерфейсе', crit:false,
+     a:'«У нас нет интерфейса, мы отдаём API. Как это рисовать — забота магазина».'},
+    {k:'name', t:'Как назовём проект', crit:false,
+     a:'«Да как хочешь. „Доставка", например».'},
+    {k:'lang', t:'На каком языке писать документацию', crit:false,
+     a:'«На русском. Мы же в России работаем».'},
+    {k:'dl', t:'Когда дедлайн', crit:false,
+     a:'«Вчера. Ты это и так знал из письма».'},
+  ];
+  const CRIT = TOPICS.filter(t => t.crit).length;
+  const LIMIT = 6;
+  box.value = S.q || '';
+  const tbox = document.getElementById('hd-topics'), abox = document.getElementById('hd-answers');
+  function openTopic(k, silent){
+    const t = TOPICS.find(x => x.k === k); if(!t) return;
+    const chip = tbox.querySelector(`.chip[data-k="${k}"]`);
+    if(chip){ chip.classList.add('on'); chip.style.pointerEvents = 'none'; }
+    const d = document.createElement('div');
+    d.className = 'jexp' + (t.crit ? '' : ' no');
+    d.innerHTML = `<b>${esc(t.t)}</b> — ответ Марины:<br>${t.a}` + (t.crit ? '' : '<br><i>Вопрос не бесполезный, но на проектирование он не влияет. Один из шести ушёл.</i>');
+    abox.appendChild(d);
+    if(!S.topics.includes(k)){ S.topics.push(k); save(); }
+    SC.q = S.topics.filter(x => (TOPICS.find(y => y.k === x) || {}).crit).length;
+    document.getElementById('hd-q-score').textContent = SC.q;
+    const left = LIMIT - S.topics.length;
+    document.getElementById('hd-q-left').textContent = left > 0 ? ('осталось ' + left) : 'вопросы закончились';
+    if(left <= 0){
+      tbox.querySelectorAll('.chip:not(.on)').forEach(c => { c.style.opacity = '.35'; c.style.pointerEvents = 'none'; });
+      if(!silent) msg(document.getElementById('hd-q-msg'), SC.q >= 5 ? 'ok' : 'warn',
+        SC.q >= 5 ? `Шесть вопросов израсходованы, <b>${SC.q}</b> из них попали в цель. Этого хватит, чтобы спроектировать без дыр.`
+                  : `Шесть вопросов израсходованы, но в цель попали только <b>${SC.q}</b>. Часть вводных ты не узнал — дальше придётся проектировать вслепую, и в итоговом документе это будет видно.`);
+    }
+    total();
+  }
+  function showTopics(){
+    document.getElementById('hd-topics-box').hidden = false;
+    tbox.innerHTML = TOPICS.map(t => `<label class="chip" data-k="${t.k}"><span class="bx">✓</span><span>${esc(t.t)}</span></label>`).join('');
+    S.topics.slice(0, LIMIT).forEach(k => openTopic(k, true));
+  }
+  document.getElementById('hd-q-send').addEventListener('click', () => {
+    S.q = box.value; save();
+    const lines = box.value.split('\n').map(x => x.trim()).filter(x => x.length > 8);
+    const rem = document.getElementById('hd-q-rem');
+    if(lines.length < 5){
+      rem.className = 'rem';
+      rem.innerHTML = `Пока ${lines.length} — нужно минимум <b>5</b> вопросов, каждый содержательнее восьми символов. Это не формальность: если ты не можешь придумать пять вопросов к такой постановке, ты её ещё не прочитал.`;
+      return;
+    }
+    rem.className = 'rem ok2';
+    rem.innerHTML = `Записано вопросов: <b>${lines.length}</b>. Теперь выбирай шесть тем.`;
+    showTopics();
+  });
+  box.addEventListener('input', () => { S.q = box.value; save(); });
+  tbox.addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if(!c) return;
+    if(S.topics.length >= LIMIT) return;
+    openTopic(c.dataset.k);
+  });
+  if(S.q && S.q.split('\n').filter(x => x.trim().length > 8).length >= 5) showTopics();
+
+  /* ---------- ШАГ 2: эндпоинты ---------- */
+  const EP = [
+    {id:'hd-e1', m:['POST'], id_req:false, q_req:false, hint:'создание элемента коллекции'},
+    {id:'hd-e2', m:['GET'], id_req:true, q_req:false, hint:'чтение одного ресурса по адресу'},
+    {id:'hd-e3', m:['GET'], id_req:false, q_req:true, hint:'выборка из коллекции по условиям'},
+    {id:'hd-e4', m:['PATCH', 'POST', 'PUT'], id_req:true, q_req:false, hint:'изменение состояния существующего ресурса'},
+  ];
+  EP.forEach((e, i) => {
+    const el = document.getElementById(e.id);
+    el.value = S.e[i] || '';
+    el.addEventListener('input', () => { S.e[i] = el.value; save(); });
+  });
+  function lint(raw, cfg, i){
+    const issues = [], notes = [];
+    const s = (raw || '').trim();
+    if(!s) return {issues:['пусто — операция не спроектирована'], notes:[]};
+    const m = s.match(/^([A-Za-z]+)\s+(\/\S*)$/);
+    if(!m) return {issues:['не разобрать: нужен формат «МЕТОД /путь», например <code class="inl">GET /api/v1/deliveries/{id}</code>'], notes:[]};
+    const method = m[1].toUpperCase(), full = m[2];
+    const path = full.split('?')[0], query = full.split('?')[1] || '';
+    if(!['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'].includes(method)) issues.push(`<code class="inl">${esc(method)}</code> — это не HTTP-метод`);
+    else if(!cfg.m.includes(method)){
+      if(method === 'DELETE' && i === 3) notes.push('DELETE защитим, но доставка не исчезает — она переходит в статус «отменена» и остаётся в биллинге и отчётности. Подумай, честно ли здесь слово «удалить»');
+      else issues.push(`метод <code class="inl">${esc(method)}</code> не подходит: ${cfg.hint} — ожидается ${cfg.m.join(' или ')}`);
+    }
+    if(!/\/(api\/)?v\d/i.test(path)) issues.push('в пути нет версии API — <code class="inl">/api/v1/…</code>');
+    const verb = path.match(/\/(get|create|new|make|add|update|edit|remove|list|find|receive|send)[A-Za-z_-]*/i);
+    if(verb) issues.push(`глагол в пути (<code class="inl">${esc(verb[0])}</code>) дублирует метод — путь состоит из существительных`);
+    const segs = path.split('/').filter(Boolean).filter(x => !/^(api|v\d)$/i.test(x));
+    const res = segs[0] || '';
+    if(res && !/(s|ies)$/i.test(res) && !/\{/.test(res)) issues.push(`ресурс <code class="inl">${esc(res)}</code> в единственном числе — коллекции называют во множественном`);
+    const hasId = /\/(\{[^}]*\}|:\w+|\d+)/.test(path);
+    if(cfg.id_req && !hasId) issues.push('нет идентификатора в пути — непонятно, о какой именно доставке речь');
+    if(!cfg.id_req && hasId && i === 0) issues.push('идентификатор в пути при создании лишний: id присваивает сервер и возвращает в ответе');
+    if(cfg.q_req){
+      const params = query ? query.split('&').filter(Boolean) : [];
+      if(params.length < 2) issues.push('нужны условия выборки в query — как минимум дата и статус');
+      if(!/page|limit|per_page|cursor|size/i.test(query)) notes.push('пагинации нет. При 50 000 доставок в сутки такой запрос вернёт всё разом — если ты спросил про объёмы, ты это знаешь');
+    }
+    if(/(phone|passport|diagnos)/i.test(query)) issues.push('персональные данные в query — они осядут в логах и истории; такие критерии передают в теле');
+    return {issues, notes};
+  }
+  document.getElementById('hd-e-check').addEventListener('click', () => {
+    const out = document.getElementById('hd-e-rem');
+    let good = 0, filled = 0;
+    out.innerHTML = EP.map((cfg, i) => {
+      const raw = document.getElementById(cfg.id).value;
+      if(raw.trim()) filled++;
+      const r = lint(raw, cfg, i);
+      if(!r.issues.length && raw.trim()) good++;
+      const head = `<b>Операция ${i + 1}</b> — <code class="inl">${esc(raw.trim() || '(пусто)')}</code>`;
+      const body = r.issues.length
+        ? '<br>' + r.issues.map(x => '⚠ ' + x).join('<br>')
+        : '<br>✓ замечаний нет';
+      const notes = r.notes.length ? '<br>' + r.notes.map(x => '💡 ' + x).join('<br>') : '';
+      return `<div class="jexp${r.issues.length ? ' no' : ''}">${head}${body}${notes}</div>`;
+    }).join('');
+    SC.e = good;
+    document.getElementById('hd-e-score').textContent = good;
+    total();
+    if(filled === 4){
+      const b = document.getElementById('hd-e-show');
+      b.disabled = false; b.textContent = '👁 Показать эталон';
+    }
+  });
+  document.getElementById('hd-e-show').addEventListener('click', () => {
+    document.getElementById('hd-e-ref').hidden = false;
+  });
+
+  /* ---------- ШАГ 3: JSON ---------- */
+  const jta = document.getElementById('hd-json');
+  jta.value = S.json || '';
+  jta.addEventListener('input', () => { S.json = jta.value; save(); });
+  document.getElementById('hd-j-check').addEventListener('click', () => {
+    const out = document.getElementById('hd-j-rem');
+    const raw = jta.value.trim();
+    if(!raw){ out.innerHTML = '<div class="jexp no">Пусто. Напиши тело ответа — хотя бы черновик.</div>'; return; }
+    let obj = null, err = null;
+    try{ obj = JSON.parse(raw); }catch(e){ err = e.message; }
+    const parts = [];
+    let pts = 0;
+    if(err){
+      parts.push(`<div class="jexp no"><b>JSON невалиден.</b> Парсер говорит: <code class="inl">${esc(err)}</code><br>Чаще всего это кавычки, запятая после последнего элемента или незакрытая скобка. Почини и проверь снова.</div>`);
+    } else {
+      pts++;
+      const flat = JSON.stringify(obj);
+      const keys = flat.match(/"[^"]+"\s*:/g) || [];
+      const kn = keys.map(k => k.replace(/["\s:]/g, '').toLowerCase());
+      const has = re => kn.some(k => re.test(k));
+      const ok = [], warn = [];
+      ok.push('синтаксис корректен — парсер разобрал');
+      if(Array.isArray(obj)) warn.push('это массив. Запрошена <b>одна</b> доставка — на такой запрос возвращают объект');
+      if(has(/^id$|_id$/)) ok.push('идентификатор есть'); else warn.push('нет идентификатора доставки — магазину нечем на неё сослаться');
+      if(has(/status/)) ok.push('статус есть'); else warn.push('нет статуса — а именно за ним магазин и пришёл');
+      if(has(/external/)) { ok.push('есть внешний идентификатор заказа'); pts++; }
+      else warn.push('нет <code class="inl">external_order_id</code> — магазин не сможет сопоставить нашу доставку со своим заказом. Это ломает всю интеграцию, хотя выглядит мелочью');
+      if(/\d{4}-\d{2}-\d{2}/.test(flat)) ok.push('дата в ISO-8601'); else warn.push('дат в формате ISO-8601 не видно. В JSON нет типа «дата» — формат надо зафиксировать явно');
+      if(has(/^id$|_id$/) && has(/status/)) pts++;
+      if(has(/phone/)) warn.push('в ответе есть телефон. Спроси себя: он точно нужен магазину для этого экрана? Персональные данные отдают под задачу, а не «на всякий случай»');
+      if(/[А-Яа-я]/.test((flat.match(/"status"\s*:\s*"[^"]*"/) || [''])[0])) warn.push('статус записан по-русски. Значение обрабатывает программа — держи латиницу (<code class="inl">in_transit</code>), а перевод оставь интерфейсу');
+      parts.push(`<div class="jexp"><b>Что хорошо:</b><br>${ok.map(x => '✓ ' + x).join('<br>')}</div>`);
+      if(warn.length) parts.push(`<div class="jexp no"><b>Что спросят на ревью:</b><br>${warn.map(x => '⚠ ' + x).join('<br>')}</div>`);
+    }
+    out.innerHTML = parts.join('');
+    SC.j = pts;
+    document.getElementById('hd-j-score').textContent = pts;
+    total();
+    const b = document.getElementById('hd-j-show');
+    b.disabled = false; b.textContent = '👁 Показать эталон';
+  });
+  document.getElementById('hd-j-show').addEventListener('click', () => {
+    document.getElementById('hd-j-ref').hidden = false;
+  });
+
+  /* ---------- ШАГ 4: коды ---------- */
+  const CODES = [
+    {s:'Доставка успешно создана', ok:[201], why:'Создан новый ресурс. В заголовке <code class="inl">Location</code> — адрес доставки, в теле — её идентификатор. 200 тоже примут, но 201 точнее.'},
+    {s:'Магазин запросил доставку, которой не существует', ok:[404], why:'Обращение по адресу к ресурсу, которого нет.'},
+    {s:'В теле запроса на создание нет адреса доставки', ok:[400, 422], why:'Запрос не соответствует контракту. 400 — самый ожидаемый ответ; 422 тоже встречается, когда синтаксис верный, а смысл нет.'},
+    {s:'Пришёл повтор с тем же Idempotency-Key', ok:[200, 201], why:'Возвращаем результат первой операции — тот же, что и в первый раз. Новую доставку не создаём. Ошибку здесь возвращать нельзя: клиент не поймёт, есть заказ или нет.'},
+    {s:'Тот же Idempotency-Key, но тело другое: другой адрес', ok:[409, 422], why:'Клиент переиспользовал ключ — это его ошибка. Выполнить нельзя (потеряется смысл защиты), вернуть старый результат тоже нельзя (это враньё). Только явный отказ.'},
+    {s:'Магазин запрашивает доставку другого магазина', ok:[403, 404], why:'Аутентификация пройдена, прав нет — 403. В системах с чувствительными данными иногда осознанно отвечают 404, чтобы не подтверждать существование чужого заказа.'},
+    {s:'У нас упала база данных', ok:[500, 503], why:'Клиент ни при чём — это 5xx, и по нему клиент понимает, что повтор позже имеет смысл. Наружу — только идентификатор ошибки, без стектрейсов.'},
+    {s:'Магазин шлёт 500 запросов в секунду при согласованных 50', ok:[429], why:'«Слишком часто». Обязательно с заголовком <code class="inl">Retry-After</code>, иначе клиент не поймёт, когда можно вернуться.'},
+  ];
+  const cg = document.getElementById('hd-codes');
+  cg.innerHTML = CODES.map((c, i) => `<div class="cs">${i + 1}. ${c.s}</div><input class="hard-in" data-i="${i}" inputmode="numeric" maxlength="3" placeholder="—">`).join('');
+  cg.querySelectorAll('input').forEach((el, i) => {
+    el.value = S.codes[i] || '';
+    el.addEventListener('input', () => { S.codes[i] = el.value; save(); });
+  });
+  document.getElementById('hd-c-check').addEventListener('click', () => {
+    let right = 0, filled = 0;
+    cg.querySelectorAll('input').forEach((el, i) => {
+      const v = parseInt(el.value, 10);
+      el.classList.remove('good', 'bad');
+      if(!el.value.trim()) return;
+      filled++;
+      if(CODES[i].ok.includes(v)){ el.classList.add('good'); right++; }
+      else el.classList.add('bad');
+    });
+    SC.c = Math.round(right / 2);
+    document.getElementById('hd-c-score').textContent = SC.c;
+    document.getElementById('hd-c-rem').innerHTML =
+      `<div class="jexp${right === CODES.length ? '' : ' no'}">Верно <b>${right}</b> из ${CODES.length} — это ${SC.c} из 4 баллов.${filled < CODES.length ? ' Часть полей осталась пустой.' : ''}</div>`;
+    total();
+    const b = document.getElementById('hd-c-show');
+    b.disabled = false; b.textContent = '👁 Показать разбор';
+  });
+  document.getElementById('hd-c-show').addEventListener('click', () => {
+    document.getElementById('hd-c-ref').innerHTML = CODES.map((c, i) =>
+      `<div class="jexp"><b>${i + 1}. ${esc(c.s)} → ${c.ok.join(' или ')}</b><br>${c.why}</div>`).join('');
+  });
+
+  /* ---------- ШАГ 5: идемпотентность ---------- */
+  const ita = document.getElementById('hd-idem');
+  ita.value = S.idem || '';
+  ita.addEventListener('input', () => { S.idem = ita.value; save(); });
+  document.getElementById('hd-i-check').addEventListener('click', () => {
+    const t = ita.value.trim(), out = document.getElementById('hd-i-rem');
+    const low = t.toLowerCase();
+    const marks = [
+      {re:/(idempotency|идемпотент|ключ|client_order_id|уникальн)/, t:'назван механизм'},
+      {re:/(генерир|создаёт|формирует|клиент)/, t:'сказано, кто и когда создаёт ключ'},
+      {re:/(повтор|второй раз|дважды|retry)/, t:'описано поведение при повторе'},
+      {re:/(хран|срок|часов|суток|24)/, t:'указан срок хранения'},
+      {re:/(другим телом|другое тело|отличается|409|422|конфликт)/, t:'описан случай «тот же ключ, другое тело»'},
+    ];
+    const hit = marks.filter(m => m.re.test(low));
+    let pts = 0;
+    if(t.length >= 150 && hit.length >= 4) pts = 2;
+    else if(t.length >= 70 && hit.length >= 2) pts = 1;
+    SC.i = pts;
+    document.getElementById('hd-i-score').textContent = pts;
+    out.innerHTML = `<div class="jexp${pts === 2 ? '' : ' no'}"><b>Найдено в тексте: ${hit.length} из 5 обязательных вещей</b><br>`
+      + marks.map(m => (m.re.test(low) ? '✓ ' : '✗ ') + m.t).join('<br>')
+      + (pts === 2 ? '<br><br>Так постановку можно отдавать разработчику: додумывать ему нечего.'
+                   : '<br><br>Пока разработчику придётся додумывать — а он додумает по-своему, и узнаешь ты об этом в проде.') + '</div>';
+    total();
+    const b = document.getElementById('hd-i-show');
+    b.disabled = false; b.textContent = '👁 Показать чек-лист';
+    document.getElementById('hd-i-ref').hidden = false;
+  });
+  renderCheck('hd-i-chk', [
+    {t:'Назван конкретный механизм', d:'Idempotency-Key в заголовке или client_order_id в теле с UNIQUE-ограничением в базе. «Проверим, нет ли дубля» — это не механизм.'},
+    {t:'Указано, кто и когда генерирует ключ', d:'Клиент, один раз в момент оформления, и шлёт один и тот же во всех повторах.'},
+    {t:'Описано, что делает сервер при повторе', d:'Не создаёт новую доставку и возвращает результат первой операции.'},
+    {t:'Указан срок хранения ключа', d:'Обычно 24 часа. Без срока разработчик либо будет хранить вечно, либо не будет вовсе.'},
+    {t:'Описан случай «тот же ключ, другое тело»', d:'Явный отказ — 409 или 422. Это ошибка клиента, и молчать о ней опасно.'},
+    {t:'Описан параллельный повтор', d:'Два одинаковых запроса пришли одновременно на разные экземпляры сервиса. Спасает UNIQUE в базе, а не проверка в коде.'},
+    {t:'Сказано, обязателен ли заголовок', d:'Если необязателен — что делаем с запросом без него: отклоняем или пропускаем без защиты.'},
+  ]);
+  document.getElementById('hd-i-show').addEventListener('click', () => {
+    document.getElementById('hd-i-ref').hidden = false;
+  });
+
+  /* ---------- ШАГ 6: спорные ---------- */
+  ['hd-d1', 'hd-d2', 'hd-d3', 'hd-d4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.value = S.d[i] || '';
+    el.addEventListener('input', () => { S.d[i] = el.value; save(); });
+  });
+
+  /* ---------- ИТОГ ---------- */
+  const DQ = ['Кто владеет статусной моделью', 'Webhook или опрос', 'Телефон получателя и логи', 'Поведение при недоступности'];
+  document.getElementById('hd-build').addEventListener('click', () => {
+    const t = total();
+    const missed = TOPICS.filter(x => x.crit && !S.topics.includes(x.k));
+    const asked = TOPICS.filter(x => S.topics.includes(x.k));
+    const L = [];
+    L.push('ПРАКТИКУМ: ИНТЕГРАЦИЯ С КУРЬЕРСКОЙ СЛУЖБОЙ «БЫСТРО»');
+    L.push('='.repeat(52));
+    L.push('');
+    L.push('1. ВОПРОСЫ, КОТОРЫЕ Я СФОРМУЛИРОВАЛ');
+    L.push((S.q || '(не заполнено)').trim());
+    L.push('');
+    L.push('2. ТЕМЫ, КОТОРЫЕ Я УСПЕЛ ПОДНЯТЬ (' + asked.length + ' из 6 возможных)');
+    L.push(asked.length ? asked.map(x => '   • ' + x.t + (x.crit ? '' : '  [не влияет на проектирование]')).join('\n') : '   (ни одной)');
+    L.push('');
+    if(missed.length){
+      L.push('   НЕ ЗАДАНО — ОБСУДИТЬ С ПРЕПОДАВАТЕЛЕМ:');
+      L.push(missed.map(x => '   ? ' + x.t).join('\n'));
+      L.push('   (ответов на них в тренажёре нет — спроектировано без этих вводных)');
+      L.push('');
+    }
+    L.push('3. ЭНДПОИНТЫ');
+    ['создание доставки', 'статус конкретной доставки', 'выборка за дату и статус', 'отмена доставки'].forEach((n, i) => {
+      L.push('   ' + (i + 1) + '. ' + n + ':');
+      L.push('      ' + ((S.e[i] || '').trim() || '(не заполнено)'));
+    });
+    L.push('');
+    L.push('4. ТЕЛО ОТВЕТА');
+    L.push((S.json || '(не заполнено)').trim());
+    L.push('');
+    L.push('5. КОДЫ ОТВЕТОВ');
+    L.push(CODES.map((c, i) => '   ' + (i + 1) + '. ' + c.s + ' → ' + ((S.codes[i] || '').trim() || '—')).join('\n'));
+    L.push('');
+    L.push('6. ЗАЩИТА ОТ ПОВТОРОВ');
+    L.push((S.idem || '(не заполнено)').trim());
+    L.push('');
+    L.push('7. СПОРНЫЕ РЕШЕНИЯ — МОЯ ПОЗИЦИЯ (тренажёр их не проверяет)');
+    DQ.forEach((n, i) => {
+      L.push('   ' + (i + 1) + '. ' + n + ':');
+      L.push('      ' + ((S.d[i] || '').trim() || '(не заполнено — нечего защищать)'));
+    });
+    L.push('');
+    L.push('— — —');
+    L.push('Баллы автопроверки: ' + t + ' из 20');
+    L.push('   вопросы в цель: ' + SC.q + '/6 · эндпоинты: ' + SC.e + '/4 · JSON: ' + SC.j + '/3 · коды: ' + SC.c + '/4 · идемпотентность: ' + SC.i + '/2');
+    L.push('Спорные решения баллами не оцениваются — они для разговора.');
+    const doc = document.getElementById('hd-doc');
+    doc.hidden = false;
+    doc.textContent = L.join('\n');
+    doc.scrollIntoView({behavior:'smooth', block:'nearest'});
+    const empty = [S.e.some(x => !x.trim()), !(S.json || '').trim(), !(S.idem || '').trim(), S.d.some(x => !(x || '').trim())].filter(Boolean).length;
+    msg(document.getElementById('hd-msg'), empty ? 'warn' : 'ok',
+      empty ? 'Документ собран, но часть полей пуста — на разборе это будет первым, что заметят. Дозаполни и собери снова.'
+            : `Документ собран целиком. Скопируй его и принеси на разбор — вместе с вопросами, на которые тренажёр не ответил.`);
+  });
+  document.getElementById('hd-copy').addEventListener('click', () => {
+    const doc = document.getElementById('hd-doc');
+    if(doc.hidden || !doc.textContent) return msg(document.getElementById('hd-msg'), 'err', 'Сначала собери документ.');
+    if(navigator.clipboard) navigator.clipboard.writeText(doc.textContent).then(
+      () => msg(document.getElementById('hd-msg'), 'ok', 'Документ скопирован в буфер обмена.'),
+      () => msg(document.getElementById('hd-msg'), 'warn', 'Не получилось скопировать — выдели текст мышью.'));
+  });
+  document.getElementById('hd-clear').addEventListener('click', () => {
+    if(!confirm('Стереть все ответы этого практикума? Отменить будет нельзя.')) return;
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    location.reload();
+  });
+  total();
+})();
+
 /* ================= 8. ИДЕМПОТЕНТНОСТЬ: СИМУЛЯТОР ================= */
 (function(){
   const send = $('#idm-send'); if(!send) return;
@@ -3165,6 +3740,7 @@ Progress.register('br1-score', 5); Progress.register('res-score', 6); Progress.r
 Progress.register('usr-score', 6); Progress.register('apt-score', 10); Progress.register('apt2-score', 5);
 Progress.register('cod-score', 8); Progress.register('jsn-hunt', 7); Progress.register('jsn-score', 5);
 Progress.register('idm-score', 6); Progress.register('say', 8); Progress.register('quiz', 24); Progress.register('cap', 16);
+Progress.register('hard', 20);
 Progress.draw();
 
 /* ================= СДАЧА РЕЗУЛЬТАТА ================= */
@@ -3191,7 +3767,7 @@ function mqHash(s){
 
 /* ================= МАРШРУТ, ГАЛОЧКИ, ТУЛТИПЫ ================= */
 (function(){
-  const CHAIN = ['brief','res','params','users','appt','codes','json','idem','how','say','practice','capstone'];
+  const CHAIN = ['brief','res','params','users','appt','codes','json','idem','how','say','practice','capstone','hard'];
   const label = id => { const t = document.querySelector(`.tab[data-tab="${id}"]`); return t ? t.textContent.replace('✓', '').trim() : id; };
   CHAIN.forEach((id, i) => {
     const sec = document.getElementById(id); if(!sec) return;
@@ -3214,7 +3790,7 @@ function mqHash(s){
 
 (function(){ /* галочки на вкладках */
   const MAP = {'br1-score':'brief','res-score':'res','par-score':'params','usr-score':'users','apt-score':'appt',
-    'cod-score':'codes','jsn-hunt':'json','idm-score':'idem','say':'say','quiz':'practice','cap':'capstone'};
+    'cod-score':'codes','jsn-hunt':'json','idm-score':'idem','say':'say','quiz':'practice','cap':'capstone','hard':'hard'};
   $$('.tab').forEach(t => { const s = document.createElement('span'); s.className = 'tick'; s.textContent = '✓'; t.appendChild(s); });
   function update(){
     const d = Progress.data, r = Progress.reg;
