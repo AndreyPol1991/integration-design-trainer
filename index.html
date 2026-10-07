@@ -2210,6 +2210,241 @@ var Progress = (function(){
   };
 })();
 
+/* ---------- мост к платформе AMP: протокол trainer/1 ----------
+   Тренажёр открыт внутри платформы ampschool.ru (в рамке) — сообщает ей о решённых заданиях,
+   и они засчитываются в профиль навыков. Открыт сам по себе — моста как будто нет: ни
+   сообщений, ни таймеров, ни отметок. Протокол — docs/09-trainer-contract.md в репозитории
+   платформы; что задание подтверждает в графе навыков, решает её манифест
+   (content/trainers/apiDesign.ts): задание, о котором она не знает, молча не засчитывается.
+
+   Задания платформы:
+   · вкладка с вариантами целиком — код равен data-tab вкладки: res, codes, idem. Решена, когда
+     за проход набран полный балл вкладки (res-score, cod-score, idm-score в Progress).
+     attempts — 1 + неверные ответы во вкладке до первого полного прохода: ответ на вопрос один,
+     после ошибки тренажёр показывает верный, повторить можно только новым проходом. hints — 0;
+   · шаг «Практикума» — hard-endpoints, hard-json, hard-codes, hard-idempotency. Решён, когда
+     шаг впервые получил полный балл своей проверки; у кодов — все восемь верны.
+     attempts — сколько раз нажата «Проверить» до этого. hints — 1, если эталон или разбор шага
+     открыт до полного балла. Чек-лист шага 5 открывается сам после проверки, поэтому шаг 5,
+     решённый не с первой проверки, — тоже с подсказкой.
+   Счётчики живут в своём ключе (apidesign-bridge-v1) и переживают перезагрузку: проход — это
+   и есть перезагрузка.
+
+   Решено раньше, без платформы: после hello досылаем решённое с мостом и ещё не зачтённое.
+   Баллы, набранные до моста, не досылаем: у них нет числа попыток, а придумать их — значит
+   подогнать доказательство.
+
+   События учёбы (расширение events, раздел 3а контракта) — только если платформа объявила их
+   в hello. started — открыл вкладку задания или начал писать в шаге «Практикума»; attempt —
+   ответил на вопрос вкладки или нажал «Проверить» в шаге; passed — решил; gave_up 'solution' —
+   открыл эталон или разбор до решения, 'left' — ушёл на другую вкладку или закрыл страницу, не
+   решив, после проверки или минуты работы. Время — только пока страница на экране. Копим и
+   отдаём пачками: раз в 10 секунд, по 50 и при уходе. Снимок уровней (skills) не объявляем.
+
+   Источник проверяется: сообщения принимаются только от родительского окна и только с адреса
+   платформы (ampschool.ru, при разработке платформы — localhost); после hello — только с того
+   же адреса, что прислал hello, и ответы уходят только туда. */
+const AMP = (function(){
+  const PROTOCOL = 'trainer/1', TRAINER = 'apiDesign', FEATURES = ['events'], KEY = 'apidesign-bridge-v1';
+  const HOME = 'https://ampschool.ru';
+  const PLATFORM = /^https:\/\/([a-z0-9-]+\.)*ampschool\.ru$/, DEV = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+  const allowed = o => typeof o === 'string' && (PLATFORM.test(o) || DEV.test(o));
+  const FLUSH_MS = 10000, BATCH = 50, MAX_QUEUE = 200, WAIT_HELLO_MS = 15000, LEFT_MS = 60000, MAX_MS = 6 * 3600 * 1000;
+  /* балл вкладки → задание; задание → вкладка и счётчик баллов на экране (для отметки) */
+  const SCORE = {'res-score':'res', 'cod-score':'codes', 'idm-score':'idem'};
+  const TASKS = {
+    'res':{tab:'res', mark:'res-score'}, 'codes':{tab:'codes', mark:'cod-score'}, 'idem':{tab:'idem', mark:'idm-score'},
+    'hard-endpoints':{tab:'hard', mark:'hd-e-score'}, 'hard-json':{tab:'hard', mark:'hd-j-score'},
+    'hard-codes':{tab:'hard', mark:'hd-c-score'}, 'hard-idempotency':{tab:'hard', mark:'hd-i-score'},
+  };
+  let embedded = false; try{ embedded = window.parent !== window; }catch(e){}
+
+  /* miss — неверные ответы во вкладке, checks — проверки шага, peek — эталон открыт до решения,
+     done — решено с мостом: {a: attempts, h: hints} */
+  const store = {miss:{}, checks:{}, peek:{}, done:{}};
+  try{ const d = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; ['miss', 'checks', 'peek', 'done'].forEach(k => { if(d[k] && typeof d[k] === 'object') store[k] = d[k]; }); }catch(e){}
+  function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+
+  const B = {
+    linked:false,          // пришёл hello: мы внутри платформы
+    origin:null,           // адрес платформы из hello — единственный, кому отвечаем
+    credited:new Set(),    // зачтено платформой: hello.solved и accepted
+    sent:new Set(),        // solved отправлен в этом заходе
+  };
+  const T = {on:false, dead:!embedded, queue:[], open:{}};   // события учёбы: open — открытые задания
+
+  /* адрес родителя до hello: нужен, чтобы ready не уходил кому попало */
+  function parentOrigin(){
+    try{ const a = location.ancestorOrigins; if(a && a.length) return a[0]; }catch(e){}
+    try{ if(document.referrer) return new URL(document.referrer).origin; }catch(e){}
+    return null;
+  }
+  function send(msg){
+    if(!embedded) return;
+    let to = B.origin;
+    if(!to){ const p = parentOrigin(); if(p && !allowed(p)) return; to = p || HOME; }
+    try{ window.parent.postMessage(Object.assign({protocol:PROTOCOL, trainer:TRAINER}, msg), to); }catch(e){}
+  }
+  function offer(task){
+    const r = store.done[task];
+    if(!B.linked || !TASKS[task] || !r || B.credited.has(task) || B.sent.has(task)) return;
+    B.sent.add(task);
+    send({kind:'solved', task, attempts:Math.min(99, Math.max(1, Math.floor(r.a) || 1)), hints:r.h ? 1 : 0});
+  }
+  function solve(task, attempts, hints){
+    if(store.done[task]) return;
+    store.done[task] = {a:attempts, h:hints};
+    persist();
+    offer(task);
+  }
+
+  /* ---------- события учёбы ---------- */
+  const now = () => performance.now();
+  const spent = c => Math.min(MAX_MS, Math.round(c.ms + (c.from != null ? now() - c.from : 0)));
+  const cap = n => Math.min(999, n);
+  function push(ev){
+    if(T.dead) return;
+    T.queue.push(ev);
+    if(T.queue.length > MAX_QUEUE) T.queue.splice(0, T.queue.length - MAX_QUEUE);
+    if(T.on && T.queue.length >= BATCH) flush();
+  }
+  function flush(){ if(T.on && B.linked) while(T.queue.length) send({kind:'events', events:T.queue.splice(0, BATCH)}); }
+  function begin(task){
+    if(!embedded) return null;
+    if(T.open[task]) return T.open[task];
+    const c = T.open[task] = {ms:0, from:document.hidden ? null : now(), attempts:0, passed:false, peeked:false};
+    push({type:'started', task});
+    return c;
+  }
+  /* ушёл с задания, не решив его: сдался, если успел поработать */
+  function leave(task){
+    const c = T.open[task]; if(!c) return;
+    delete T.open[task];
+    if(c.passed || c.peeked) return;
+    const ms = spent(c);
+    if(c.attempts > 0 || ms >= LEFT_MS) push({type:'gave_up', task, reason:'left', attempts:cap(c.attempts), ms});
+  }
+  function passed(task){
+    const c = begin(task); if(!c || c.passed) return;
+    c.passed = true;
+    push({type:'passed', task, attempts:cap(c.attempts), ms:spent(c)});
+  }
+
+  /* ---------- вызовы из тренажёра ---------- */
+  /* ответ на вопрос вкладки (renderTasks): ошибка до первого полного прохода — лишняя попытка */
+  function answer(scoreKey, ok){
+    const task = SCORE[scoreKey]; if(!task) return;
+    if(!ok && !store.done[task]){ store.miss[task] = (store.miss[task] || 0) + 1; persist(); }
+    const c = begin(task);
+    if(c){ c.attempts += 1; push({type:'attempt', task, ok:!!ok, attempts:cap(c.attempts), ms:spent(c)}); }
+  }
+  /* балл вкладки дошёл до полного (обёртка Progress.report ниже) */
+  function score(k, v){
+    const task = SCORE[k]; if(!task || !(v >= (Progress.reg[k] || Infinity))) return;
+    solve(task, 1 + (store.miss[task] || 0), 0);
+    passed(task);
+    paint();
+  }
+  /* «Проверить» в шаге «Практикума»: full — шаг получил полный балл */
+  function check(task, full){
+    if(!TASKS[task]) return;
+    if(!store.done[task]){ store.checks[task] = (store.checks[task] || 0) + 1; persist(); }
+    const c = begin(task);
+    if(c){ c.attempts += 1; push({type:'attempt', task, ok:!!full, attempts:cap(c.attempts), ms:spent(c)}); }
+    if(full){ solve(task, store.checks[task] || 1, store.peek[task] ? 1 : 0); passed(task); paint(); }
+  }
+  /* открыт эталон или разбор шага. shown — человек открыл сам (сдался), а не тренажёр показал
+     чек-лист после проверки */
+  function peek(task, shown){
+    if(!TASKS[task] || store.done[task]) return;
+    if(!store.peek[task]){ store.peek[task] = 1; persist(); }
+    if(!shown) return;
+    const c = begin(task);
+    if(c && !c.passed && !c.peeked){ c.peeked = true; push({type:'gave_up', task, reason:'solution', attempts:cap(c.attempts), ms:spent(c)}); }
+  }
+
+  /* ---------- отметки «в профиле» ---------- */
+  function paint(){
+    if(!B.linked) return;
+    if(!document.getElementById('amp-css')){
+      const s = document.createElement('style'); s.id = 'amp-css';
+      s.textContent = '.amp-prof{display:inline-block; margin-left:8px; padding:0 8px; border:1px solid currentColor; border-radius:999px; font:600 11px/17px var(--mono); color:var(--ok); white-space:nowrap; vertical-align:2px}';
+      document.head.appendChild(s);
+    }
+    Object.keys(TASKS).forEach(task => {
+      const el = document.getElementById(TASKS[task].mark), h = el && el.closest('h2'); if(!h) return;
+      const tag = h.querySelector('.amp-prof'), on = B.credited.has(task);
+      if(on && !tag){ const t = document.createElement('span'); t.className = 'amp-prof'; t.textContent = 'в профиле'; t.title = 'Засчитано в профиль навыков AMP'; h.appendChild(t); }
+      if(!on && tag) tag.remove();
+    });
+  }
+  /* внутри платформы код для преподавателя не нужен: решённое и так уходит в профиль */
+  function hideSubmit(){
+    const btn = document.getElementById('sub-make'), card = btn && btn.closest('.card');
+    if(!card || card.dataset.amp) return;
+    card.dataset.amp = '1';
+    card.style.display = 'none';
+    const note = document.createElement('div');
+    card.after(note);
+    msg(note, 'ok', 'Ты на платформе AMP: решённые задания сами уходят в профиль навыков — код преподавателю не нужен.');
+  }
+
+  /* ---------- ответ платформы ---------- */
+  window.addEventListener('message', e => {
+    if(!embedded || e.source !== window.parent || !allowed(e.origin)) return;
+    if(B.origin && e.origin !== B.origin) return;
+    const d = e.data;
+    if(typeof d !== 'object' || d === null || d.protocol !== PROTOCOL) return;
+    if(d.kind === 'hello'){
+      B.linked = true; B.origin = e.origin;
+      (Array.isArray(d.solved) ? d.solved : []).forEach(t => { if(typeof t === 'string') B.credited.add(t); });
+      const events = Array.isArray(d.features) && d.features.includes('events');
+      T.on = events; T.dead = !events; if(!events) T.queue = [];
+      Object.keys(store.done).forEach(offer);
+      flush(); paint(); hideSubmit();
+    } else if(d.kind === 'accepted' && B.linked && typeof d.task === 'string'){
+      B.credited.add(d.task); paint();
+    }
+  });
+
+  if(embedded){
+    /* вкладка открыта: задания других вкладок покинуты, задание этой вкладки начато */
+    $$('.tab').forEach(t => t.addEventListener('click', () => {
+      const tab = t.dataset.tab;
+      Object.keys(T.open).forEach(task => { if(TASKS[task].tab !== tab) leave(task); });
+      if(TASKS[tab]) begin(tab);
+    }));
+    /* «Практикум»: шаг начат, когда в нём начали писать */
+    const hard = document.getElementById('hard');
+    if(hard) hard.addEventListener('input', e => {
+      const id = e.target.id || '';
+      const task = /^hd-e\d$/.test(id) ? 'hard-endpoints' : id === 'hd-json' ? 'hard-json' : id === 'hd-idem' ? 'hard-idempotency'
+        : e.target.closest('#hd-codes') ? 'hard-codes' : '';
+      if(task) begin(task);
+    });
+    setInterval(flush, FLUSH_MS);
+    /* родитель не ответил — значит, это не платформа: событий не копим */
+    setTimeout(() => { if(!B.linked){ T.dead = true; T.queue = []; } }, WAIT_HELLO_MS);
+    document.addEventListener('visibilitychange', () => {
+      Object.values(T.open).forEach(c => {
+        if(document.hidden){ if(c.from != null){ c.ms += now() - c.from; c.from = null; } }
+        else if(c.from == null) c.from = now();
+      });
+      if(document.hidden) flush();
+    });
+    /* закрыли окно тренажёра или страницу: уход с заданий и последняя пачка */
+    window.addEventListener('pagehide', () => { Object.keys(T.open).forEach(leave); flush(); });
+  }
+
+  /* полный балл вкладки ловим на записи в Progress: там он уже считается */
+  const report = Progress.report;
+  Progress.report = function(k, v){ report.call(Progress, k, v); score(k, v); };
+
+  /* ready — в самом конце скрипта, когда все вкладки собраны */
+  function ready(){ send({kind:'ready', features:FEATURES}); }
+  return {answer, check, peek, ready, state:B, events:T, store};
+})();
+
 /* ---------- движок мини-заданий ---------- */
 function renderTasks(rootId, items, scoreId, totalId){
   const root = document.getElementById(rootId); if(!root) return;
@@ -2229,6 +2464,7 @@ function renderTasks(rootId, items, scoreId, totalId){
     const chosen = it.opts[j], correct = it.opts.find(o => o.ok);
     task.querySelectorAll('.rb').forEach((b, k) => { b.disabled = true; if(it.opts[k].ok) b.classList.add('correct'); });
     if(!chosen.ok) btn.classList.add('wrong');
+    AMP.answer(scoreId, chosen.ok); /* мост AMP: ошибка — лишняя попытка вкладки */
     const why = task.querySelector('.rwhy');
     why.classList.add('show');
     why.innerHTML = (chosen.ok ? '<b style="color:var(--ok)">Верно. </b>' : `<b style="color:var(--danger)">Не то — правильно «${esc(correct.t)}». </b>`) + it.why;
@@ -2963,6 +3199,7 @@ renderTasks('jsn-quiz', [
     SC.e = good;
     document.getElementById('hd-e-score').textContent = good;
     total();
+    AMP.check('hard-endpoints', good === EP.length);
     if(filled === 4){
       const b = document.getElementById('hd-e-show');
       b.disabled = false; b.textContent = '👁 Показать эталон';
@@ -2970,6 +3207,7 @@ renderTasks('jsn-quiz', [
   });
   document.getElementById('hd-e-show').addEventListener('click', () => {
     document.getElementById('hd-e-ref').hidden = false;
+    AMP.peek('hard-endpoints', true);
   });
 
   /* ---------- ШАГ 3: JSON ---------- */
@@ -3010,11 +3248,13 @@ renderTasks('jsn-quiz', [
     SC.j = pts;
     document.getElementById('hd-j-score').textContent = pts;
     total();
+    AMP.check('hard-json', pts === 3);
     const b = document.getElementById('hd-j-show');
     b.disabled = false; b.textContent = '👁 Показать эталон';
   });
   document.getElementById('hd-j-show').addEventListener('click', () => {
     document.getElementById('hd-j-ref').hidden = false;
+    AMP.peek('hard-json', true);
   });
 
   /* ---------- ШАГ 4: коды ---------- */
@@ -3049,12 +3289,14 @@ renderTasks('jsn-quiz', [
     document.getElementById('hd-c-rem').innerHTML =
       `<div class="jexp${right === CODES.length ? '' : ' no'}">Верно <b>${right}</b> из ${CODES.length} — это ${SC.c} из 4 баллов.${filled < CODES.length ? ' Часть полей осталась пустой.' : ''}</div>`;
     total();
+    AMP.check('hard-codes', right === CODES.length); /* 4 балла дают и 7 из 8 — в зачёт только все восемь */
     const b = document.getElementById('hd-c-show');
     b.disabled = false; b.textContent = '👁 Показать разбор';
   });
   document.getElementById('hd-c-show').addEventListener('click', () => {
     document.getElementById('hd-c-ref').innerHTML = CODES.map((c, i) =>
       `<div class="jexp"><b>${i + 1}. ${esc(c.s)} → ${c.ok.join(' или ')}</b><br>${c.why}</div>`).join('');
+    AMP.peek('hard-codes', true);
   });
 
   /* ---------- ШАГ 5: идемпотентность ---------- */
@@ -3085,6 +3327,9 @@ renderTasks('jsn-quiz', [
     const b = document.getElementById('hd-i-show');
     b.disabled = false; b.textContent = '👁 Показать чек-лист';
     document.getElementById('hd-i-ref').hidden = false;
+    /* мост AMP: чек-лист открывается сам после проверки — дальше шаг решается с подсказкой */
+    AMP.check('hard-idempotency', pts === 2);
+    AMP.peek('hard-idempotency', false);
   });
   renderCheck('hd-i-chk', [
     {t:'Назван конкретный механизм', d:'Idempotency-Key в заголовке или client_order_id в теле с UNIQUE-ограничением в базе. «Проверим, нет ли дубля» — это не механизм.'},
@@ -3851,6 +4096,8 @@ function mqHash(s){
   document.addEventListener('click', e => { const t = e.target.closest('.term'); if(t){ show(t); setTimeout(hide, 4000); } });
   window.addEventListener('scroll', hide, {passive:true});
 })();
+
+AMP.ready(); /* мост AMP: всё собрано — платформа ответит hello */
 </script>
 </body>
 </html>
